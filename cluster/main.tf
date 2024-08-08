@@ -14,6 +14,26 @@ resource "azurerm_resource_group" "resource_group" {
 
 }
 
+# Virtual Network
+resource "azurerm_virtual_network" "cluster_vpc" {
+  name                = var.vpc_name
+  address_space       = var.vpc_address_space
+  location            = azurerm_resource_group.resource_group.location
+  resource_group_name = azurerm_resource_group.resource_group.name
+}
+
+# Subnet 1
+resource "azurerm_subnet" "cluster_subnet" {
+  count = length(var.subnets)
+  name                 = "${var.env}-subnet-${count.index}"
+  resource_group_name  = azurerm_resource_group.resource_group.name
+  virtual_network_name = azurerm_virtual_network.cluster_vpc.name
+  address_prefixes     = [var.subnets[count.index]]
+
+  depends_on = [ azurerm_virtual_network.cluster_vpc ]
+}
+
+
 # other resources will go here
 resource "azurerm_kubernetes_cluster" "test-cluster" {
     location            = azurerm_resource_group.resource_group.location
@@ -21,6 +41,8 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
     resource_group_name = azurerm_resource_group.resource_group.name
     dns_prefix          = "test"
 
+
+    
     identity {
       type = "SystemAssigned"
     }
@@ -29,7 +51,11 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
       name       = "agentpool"
       vm_size    = "Standard_D2_v2"
       node_count = var.node_count
+      vnet_subnet_id = azurerm_subnet.cluster_subnet[0].id
+    
     }
+
+    
     # linux_profile {
     #   admin_username = var.username
 
@@ -40,9 +66,12 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
     network_profile {
       network_plugin    = "kubenet"
       load_balancer_sku = "standard"
+      pod_cidr = var.pod_cidr
+      service_cidr =  var.service_cidr
+      dns_service_ip = var.dns_service_ip
     }
 
     automatic_channel_upgrade = "stable"
 
-    depends_on = [ azurerm_resource_group.resource_group ]
+    depends_on = [ azurerm_resource_group.resource_group, azurerm_subnet.cluster_subnet ]
 }
