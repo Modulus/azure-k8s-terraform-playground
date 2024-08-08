@@ -56,13 +56,11 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
     }
 
     
-    # linux_profile {
-    #   admin_username = var.username
+      # Enable virtual node (ACI connector) for Linux
+      aci_connector_linux {
+        subnet_name = azurerm_subnet.cluster_subnet[1].name
+      }
 
-    #   ssh_key {
-    #     key_data = azapi_resource_action.ssh_public_key_gen.output.publicKey
-    #   }
-    # }
     network_profile {
       network_plugin    = "kubenet"
       load_balancer_sku = "standard"
