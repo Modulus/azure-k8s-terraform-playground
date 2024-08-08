@@ -37,9 +37,9 @@ resource "azurerm_subnet" "cluster_subnet" {
 # other resources will go here
 resource "azurerm_kubernetes_cluster" "test-cluster" {
     location            = azurerm_resource_group.resource_group.location
-    name                = "test-cluster"
+    name                = "${var.env}-cluster"
     resource_group_name = azurerm_resource_group.resource_group.name
-    dns_prefix          = "test"
+    dns_prefix          = "${var.env}-${var.dns_prefix}"
 
 
     
@@ -48,8 +48,8 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
     }
 
     default_node_pool {
-      name       = "agentpool"
-      vm_size    = "Standard_D2_v2"
+      name       = var.default_node_pool_name
+      vm_size    = var.default_vm_size
       node_count = var.node_count
       vnet_subnet_id = azurerm_subnet.cluster_subnet[0].id
     

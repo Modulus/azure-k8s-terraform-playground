@@ -24,11 +24,6 @@ variable vpc_address_space {
   description = "Addresses in this vpc"
 }
 
-variable  "cluster_name" {
-  type = string
-  description = "name of k8s cluster"
-}
-
 variable dns_prefix  {
   type = string
   description = "Prefix for dns names for this k8s cluster"
@@ -57,4 +52,13 @@ variable service_cidr {
 variable dns_service_ip {
   type = string
   description = "Ip within range of vpc for dns service"
+}
+
+variable "default_vm_size" {
+  type = string
+  description = "Size of vm for k8s cluster"
+}
+
+variable "default_node_pool_name" {
+  type = string
 }
