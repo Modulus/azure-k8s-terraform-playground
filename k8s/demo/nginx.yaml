@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        # resources:
+        #   requests:
+        #     memory: "32Mi"
+        #     cpu: "50m"
+        #   limits:
+        #     memory: "64Mi"
+        #     cpu: "150m"
+        image: mcr.microsoft.com/azuredocs/aci-helloworld #nginx:latest --> Does not work
+        ports:
+        - containerPort: 80
+      nodeSelector:
+        kubernetes.io/role: agent
+        kubernetes.io/os: linux
+        type: virtual-kubelet
+      tolerations:
+      - key: virtual-kubelet.io/provider
+        operator: Exists
