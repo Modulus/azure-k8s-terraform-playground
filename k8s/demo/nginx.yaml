@@ -14,6 +14,7 @@ spec:
     spec:
       containers:
       - name: nginx
+      # For some reason resource requests does not work
         # resources:
         #   requests:
         #     memory: "32Mi"
@@ -21,7 +22,7 @@ spec:
         #   limits:
         #     memory: "64Mi"
         #     cpu: "150m"
-        image: mcr.microsoft.com/azuredocs/aci-helloworld #nginx:latest --> Does not work
+        image: mcr.microsoft.com/azuredocs/aci-helloworld #nginx:latest --> Does not work, has to be azure container
         ports:
         - containerPort: 80
       nodeSelector:

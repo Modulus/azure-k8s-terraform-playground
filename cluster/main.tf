@@ -41,7 +41,13 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
     resource_group_name = azurerm_resource_group.resource_group.name
     dns_prefix          = "${var.env}-${var.dns_prefix}"
 
+    # Ingress application gateway needs its own subnet
+    ingress_application_gateway {
+      gateway_name = "${var.env}-cluster-ingress-gw"
+      subnet_id = azurerm_subnet.cluster_subnet[2].id
+    }
 
+    
     
     identity {
       type = "SystemAssigned"
@@ -52,11 +58,14 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
       vm_size    = var.default_vm_size
       node_count = var.node_count
       vnet_subnet_id = azurerm_subnet.cluster_subnet[0].id
-    
+      enable_auto_scaling = true
+      max_count = 3
+      min_count = 1
     }
 
     
       # Enable virtual node (ACI connector) for Linux
+      # Virtual nodes needs their own subnet
       aci_connector_linux {
         subnet_name = azurerm_subnet.cluster_subnet[1].name
       }
@@ -73,3 +82,27 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
 
     depends_on = [ azurerm_resource_group.resource_group, azurerm_subnet.cluster_subnet ]
 }
+
+
+resource "azurerm_role_assignment" "aks_agic_integration" {
+  scope = azurerm_virtual_network.cluster_vpc.id
+  role_definition_name = "Network Contributor"
+  principal_id = azurerm_kubernetes_cluster.test-cluster.ingress_application_gateway[0].ingress_application_gateway_identity[0].object_id
+}
+
+resource "azurerm_role_assignment" "aci_connector_linux_integration" {
+  scope = azurerm_virtual_network.cluster_vpc.id
+  role_definition_name = "Network Contributor"
+  principal_id =  azurerm_kubernetes_cluster.test-cluster.aci_connector_linux[0].connector_identity[0]["object_id"]
+}
+
+output "connector" {
+  value = azurerm_kubernetes_cluster.test-cluster.aci_connector_linux[0].connector_identity[0]["object_id"]
+}
+
+# THIs does nothing you need aci_connector_linux_integration
+# resource "azurerm_role_assignment" "example" {
+#   scope                = azurerm_virtual_network.cluster_vpc.id
+#   role_definition_name = "Network Contributor"
+#   principal_id         = azurerm_kubernetes_cluster.test-cluster.identity.0.principal_id
+# }
