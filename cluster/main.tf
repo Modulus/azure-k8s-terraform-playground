@@ -50,6 +50,63 @@ resource "azurerm_public_ip" "ingress-ip" {
     tags = merge(var.common_tags, var.tags)
 }
 
+
+# resource azurerm_application_gateway ingress-agw {
+#   name                = "example-appgateway"
+#   resource_group_name = azurerm_resource_group.resource_group.name
+#   location            = azurerm_resource_group.resource_group.location
+
+#   sku {
+#     name     = "Standard_v2"
+#     tier     = "Standard_v2"
+#     capacity = 2
+#   }
+
+#   gateway_ip_configuration {
+#     name      = "ingress-gateway-ip-configuration"
+#     subnet_id =  azurerm_subnet.cluster_subnet[2].id
+#   }
+
+#   frontend_port {
+#     name = "${var.env}-frontendport"
+#     port = 80
+#   }
+
+#   frontend_ip_configuration {
+#     name                 = azurerm_public_ip.ingress-ip.name
+#     public_ip_address_id = azurerm_public_ip.ingress-ip.id
+#   }
+
+#   backend_address_pool {
+#     name = azurerm_virtual_network.cluster_vpc.name
+#   }
+
+#   backend_http_settings {
+#     name                  = "${var.env}-backend-htttp"
+#     cookie_based_affinity = "Disabled"
+#     path                  = "/"
+#     port                  = 80
+#     protocol              = "Http"
+#     request_timeout       = 60
+#   }
+
+#   http_listener {
+#     name                           = "${var.env}-http-listener"
+#     frontend_ip_configuration_name = "${var.env}-${azurerm_virtual_network.cluster_vpc.name}-frontend-ip"
+#     frontend_port_name             = "${var.env}-${azurerm_virtual_network.cluster_vpc.name}-frontendport-name"
+#     protocol                       = "Http"
+#   }
+
+#   request_routing_rule {
+#     name                       = "${var.env}-req-routing-rule"
+#     priority                   = 9
+#     rule_type                  = "Basic"
+#     http_listener_name         = "${var.env}-listener"
+#     backend_address_pool_name  = "${var.env}-backendpool"
+#     backend_http_settings_name = "${var.env}-backend-http-settings"
+#   }
+# }
+
 # other resources will go here
 resource "azurerm_kubernetes_cluster" "test-cluster" {
     location            = azurerm_resource_group.resource_group.location
@@ -63,6 +120,9 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
     ingress_application_gateway {
       gateway_name = "${var.env}-cluster-ingress-gw"
       subnet_id = azurerm_subnet.cluster_subnet[2].id
+      # gateway_id = azurerm_application_gateway.ingress-agw.id
+
+      
     }
 
     
