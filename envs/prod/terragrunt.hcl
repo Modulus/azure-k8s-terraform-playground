@@ -1,5 +1,10 @@
 terraform {
     source = "../../cluster"
+    commands = ["plan", "apply", "destroy"]
+
+    arguments = [
+        "-var-file=common.tfvars"
+    ]
 }
 
 inputs = {

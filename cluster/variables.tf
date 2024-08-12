@@ -62,3 +62,11 @@ variable "default_vm_size" {
 variable "default_node_pool_name" {
   type = string
 }
+
+variable "tags" {
+  type = map
+}
+
+variable "common_tags" {
+  type = map
+}

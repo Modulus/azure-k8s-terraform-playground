@@ -11,6 +11,7 @@ resource "azurerm_resource_group" "resource_group" {
   # lifecycle {
   #   prevent_destroy = true
   # }
+  tags = merge(var.common_tags, var.tags)
 
 }
 
@@ -20,6 +21,9 @@ resource "azurerm_virtual_network" "cluster_vpc" {
   address_space       = var.vpc_address_space
   location            = azurerm_resource_group.resource_group.location
   resource_group_name = azurerm_resource_group.resource_group.name
+
+  tags = merge(var.common_tags, var.tags)
+
 }
 
 # Subnet 1
@@ -30,9 +34,21 @@ resource "azurerm_subnet" "cluster_subnet" {
   virtual_network_name = azurerm_virtual_network.cluster_vpc.name
   address_prefixes     = [var.subnets[count.index]]
 
+
   depends_on = [ azurerm_virtual_network.cluster_vpc ]
+
+
 }
 
+
+resource "azurerm_public_ip" "ingress-ip" {
+  name                = "${var.env}-ingress-ip"
+  resource_group_name = azurerm_resource_group.resource_group.name
+  location            = azurerm_resource_group.resource_group.location
+  allocation_method   = "Static"
+
+    tags = merge(var.common_tags, var.tags)
+}
 
 # other resources will go here
 resource "azurerm_kubernetes_cluster" "test-cluster" {
@@ -40,6 +56,8 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
     name                = "${var.env}-cluster"
     resource_group_name = azurerm_resource_group.resource_group.name
     dns_prefix          = "${var.env}-${var.dns_prefix}"
+
+    tags = merge(var.common_tags, var.tags)
 
     # Ingress application gateway needs its own subnet
     ingress_application_gateway {
@@ -61,6 +79,8 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
       enable_auto_scaling = true
       max_count = 3
       min_count = 1
+      tags = merge(var.common_tags, var.tags)
+
     }
 
     
@@ -68,6 +88,7 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
       # Virtual nodes needs their own subnet
       aci_connector_linux {
         subnet_name = azurerm_subnet.cluster_subnet[1].name
+
       }
 
     network_profile {
@@ -88,6 +109,7 @@ resource "azurerm_role_assignment" "aks_agic_integration" {
   scope = azurerm_virtual_network.cluster_vpc.id
   role_definition_name = "Network Contributor"
   principal_id = azurerm_kubernetes_cluster.test-cluster.ingress_application_gateway[0].ingress_application_gateway_identity[0].object_id
+
 }
 
 resource "azurerm_role_assignment" "aci_connector_linux_integration" {
@@ -96,9 +118,7 @@ resource "azurerm_role_assignment" "aci_connector_linux_integration" {
   principal_id =  azurerm_kubernetes_cluster.test-cluster.aci_connector_linux[0].connector_identity[0]["object_id"]
 }
 
-output "connector" {
-  value = azurerm_kubernetes_cluster.test-cluster.aci_connector_linux[0].connector_identity[0]["object_id"]
-}
+
 
 # THIs does nothing you need aci_connector_linux_integration
 # resource "azurerm_role_assignment" "example" {
