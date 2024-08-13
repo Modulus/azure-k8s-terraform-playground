@@ -75,6 +75,7 @@ resource azurerm_application_gateway ingress-gw {
     capacity = 2
   }
 
+  # Application gateways need their own subnet
   gateway_ip_configuration {
     name      = "ingress-gateway-ip-configuration"
     subnet_id =  azurerm_subnet.cluster_subnet[2].id
@@ -192,11 +193,21 @@ resource "azurerm_role_assignment" "aks_agic_integration" {
 }
 
 ## This might be unnecessary when agw have the same role on the vpc.
-resource "azurerm_role_assignment" "agw_integration" {
+resource "azurerm_role_assignment" "agw_integration_separate" {
   scope = azurerm_subnet.cluster_subnet[2].id
   role_definition_name = "Network Contributor"
   principal_id =  azurerm_kubernetes_cluster.test-cluster.ingress_application_gateway[0].ingress_application_gateway_identity[0].object_id
 }
+
+
+### TODO: Test using this in the same subnet as the nodes
+resource "azurerm_role_assignment" "agw_integration_node_subnet" {
+  scope = azurerm_subnet.cluster_subnet[0].id
+  role_definition_name = "Network Contributor"
+  principal_id =  azurerm_kubernetes_cluster.test-cluster.ingress_application_gateway[0].ingress_application_gateway_identity[0].object_id
+}
+
+
 
 
 resource "azurerm_role_assignment" "aci_connector_linux_integration" {
