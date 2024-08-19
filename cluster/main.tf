@@ -1,6 +1,10 @@
 # providers.tf
 provider "azurerm" {
-  features {}
+   features {
+     resource_group {
+       prevent_deletion_if_contains_resources = false
+     }
+   }
 }
 
 # main.tf
@@ -183,6 +187,19 @@ resource "azurerm_kubernetes_cluster" "test-cluster" {
 
     depends_on = [ azurerm_resource_group.resource_group, azurerm_subnet.cluster_subnet, azurerm_application_gateway.ingress-gw, azurerm_public_ip.ingress-ip]
 }
+
+# resource "azurerm_kubernetes_cluster_node_pool" "gpu_node_pool" {
+#   name                  = "gpu"
+#   kubernetes_cluster_id = azurerm_kubernetes_cluster.test-cluster.id
+#   vm_size               = "Standard_NC4as_T4_v3"
+#   node_count            = 1
+
+#   tags = {
+#     Environment = var.env
+#   }
+
+#   depends_on = [ azurerm_kubernetes_cluster.test-cluster ]
+# }
 
 
 resource "azurerm_role_assignment" "aks_agic_integration" {

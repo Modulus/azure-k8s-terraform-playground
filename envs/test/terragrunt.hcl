@@ -33,4 +33,5 @@ inputs = {
         enviromnent = "test"
         created = timestamp()
     }
+    vm_size_gpu = "Standard_NC4as_T4_v3"
 }

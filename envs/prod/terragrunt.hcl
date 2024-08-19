@@ -21,4 +21,5 @@ inputs = {
     dns_service_ip = "10.16.64.201"
     default_vm_size = "Standard_D2_v2"
     default_node_pool_name = "slaaneshp1"
+    vm_size_gpu = "Standard_NC4as_T4_v3"
 }

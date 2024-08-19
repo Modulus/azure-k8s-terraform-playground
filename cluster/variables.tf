@@ -70,3 +70,7 @@ variable "tags" {
 variable "common_tags" {
   type = map
 }
+
+variable vm_size_gpu {
+  type = string
+}
